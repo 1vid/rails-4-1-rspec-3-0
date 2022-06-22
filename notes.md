@@ -14,7 +14,7 @@ git checkout -b 02_setup origin/02_setup
 
 Когда-то RSpec шел из коробки, но на данный момент его убрали. Поэтому добавим пару строк в наш `Gemfile` и с помощью `Bundler` установим необходимые зависимости:
 
-```
+```ruby
 group :development, :test do
   gem "rspec-rails", "~> 3.1.0"
   gem "factory_girl_rails", "~> 4.4.1"
@@ -49,7 +49,7 @@ bundle install
 ```
 
 Что мы установили?
-- [_rspec-rails_](https://github.com/rspec/rspec-rails/tree/3-1-maintenance) включает в себя сам RSpec и некоторые спецефические особенности
+- [_rspec-rails_](https://github.com/rspec/rspec-rails/tree/3-1-maintenance) включает в себя сам RSpec и некоторые спецефические особенности для Rails.
 - _factory_girl_rails_ заменяет дефолтные [фикстуры](https://api.rubyonrails.org/v3.1/classes/ActiveRecord/Fixtures.html) на более предпочтительные [фабрики](https://github.com/thoughtbot/factory_bot_rails#factory_bot_rails---)(да, теперь это `factory_bot` :robot:)
 - [_faker_](https://github.com/faker-ruby/faker) генерит имена, email'ы, адресса и кучу всего другого. Очень удобно. Можно не только для тестов юзать, но и для заполнения нульцевого проекта, чтоб смотрелось.
 - [_capybara_](http://teamcapybara.github.io/capybara/) делает простой програмную симуляцию взаимодействий пользователя через браузер с нашим приложением
@@ -68,7 +68,7 @@ bundle install
 **Для SQLite:**
 
 `config/database.yml`
-```
+```yml
 test:
   adapter: sqlite3
   database: db/test.sqlite3
@@ -79,7 +79,7 @@ test:
 **Для MySQL:**
 
 `config/database.yml`
-```
+```yml
 test:
   adapter: mysql2
   encoding: utf8
@@ -94,7 +94,7 @@ test:
 **Для PostgreSQL:**
 
 `config/database.yml`
-```
+```yml
 test:
   adapter: postgresql
   encoding: utf8
@@ -122,7 +122,7 @@ rails generate rspec:install
 ```
 
 Генератор покорно нам сообщит:
-```
+```shell
 create .rspec
 create spec
 create spec/spec_helper.rb
@@ -143,3 +143,56 @@ create spec/rails_helper.rb
 
 ## Генераторы
 
+Еще одна опциональная настройка: 
+
+Заставим рельсу автоматом создавать `spec` файлы при использовании встроенных генераторов моделей, контроллеров и [scaffold](https://guides.rubyonrails.org/v3.2/getting_started.html#getting-up-and-running-quickly-with-scaffolding)'ов в наше приложение.
+
+Спасибо [Railties](https://api.rubyonrails.org/classes/Rails/Railtie.html), сразу после установки гемов `rspec-rails` и `factory_girl_rails` в наше приложение, рельсовые генераторы перестают создавать `Test::Unit` файлы в `test`, они создают RSpec файлы в папку `spec` и фабрики в `spec/factories`.
+
+Но теперь если использовать `scaffold` будет генерится много не нужных тестов, например спеки въюх. Да и впринципе надо знать где можно кастомизировать генераторы.
+
+Открываем `config/application.rb` и пишем следующий код внутри `Application class` :
+
+`config/application.rb`
+```ruby
+    config.generators do |g|
+      g.test_framework :rspec,
+        fixtures: true,
+        view_specs: false,
+        helper_specs: false,
+        routing_specs: false,
+        controller_specs: true,
+        request_specs: false
+      g.fixture_replacement :factory_girl, dir: "spec/factories"
+    end
+```
+
+Давайте разберемся с этим кодом:
+- `fixtures: true` указывает на создание фикстур для каждой модели(ниже мы подключим фабрику `Factory
+Girl` вместо дефолтных фикстур )
+- `view_specs: false` говорит о том что бы пропускать генерирование `spec`'ов для вьюх. Мы не будем их тестировать в этой книге, вместо этого мы будем писать тесты для фич целиком чтобы протестировать элементы интерфейса.
+- `helper_specs: false` говорит о том что бы пропускать генерирование `spec`'ов для `helper`'ов. По мере роста уровня вашего мастерства в работе с RSpec поменйте значение на `true`, что бы тестировать эти файлы.
+- `routing_specs: false` пропускает `spec` файлы для _config/routes.rb_. Наше учебное приложение достаточно простое и можно спокойно не писать тесты на раутинг. Но по мере роста приложения и появления большого количества путей и усложнения их конфигурации, это неплозхая идея инкорпорировать и такие тесты.
+- `request_specs: false` пропускает создание дефолтных RSpec тестов интеграцонного уровня в _spec/request_. Мы займемся ручным написанием таких тестов в 8 главе.
+- `g.fixture_replacement :factory_girl` говорит "рельсам" генерить фабрики вместо фикстур, и сохранять их в _spec/factories directory_.
+
+
+Не забывайте! Если RSpec не генерит вам нужные файлы, вы всегда можете их написать руками. Необходимо следовать [соглашению](https://relishapp.com/rspec/rspec-rails/docs/directory-structure) для расположения и названия файлов.
+
+И наконец настроим bistub для RSpec, это сделает `rspec` выполняемой в `bin` директории:
+```shell
+bundle binstubs rspec-core
+```
+
+## Подготовка БД для тестов
+
+В версии Rails ниже 4.1 необходимо вручну готовить БД для тестов `rake db:test:prepare` or `rake db:test:clone`
+
+Ну что ж, сделаем первый запуск:
+
+```shell
+bin/rspec
+No examples found.
+Finished in 0.00027 seconds (files took 0.06527 seconds to load)
+0 examples, 0 failures
+```
