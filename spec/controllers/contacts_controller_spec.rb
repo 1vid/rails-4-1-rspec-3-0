@@ -1,4 +1,5 @@
 require 'rails_helper'
+# require 'debugger'; debugger
 
 describe ContactsController do
   describe 'GET #index' do
@@ -73,6 +74,7 @@ describe ContactsController do
 
   describe "POST #create" do
     before :each do
+      debugger
       @phones = [
         attributes_for(:phone),
         attributes_for(:phone),
