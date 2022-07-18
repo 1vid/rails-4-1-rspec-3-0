@@ -1,5 +1,4 @@
 require 'rails_helper'
-# require 'debugger'; debugger
 
 describe ContactsController do
   describe 'GET #index' do
@@ -74,7 +73,6 @@ describe ContactsController do
 
   describe "POST #create" do
     before :each do
-      debugger
       @phones = [
         attributes_for(:phone),
         attributes_for(:phone),
@@ -174,6 +172,28 @@ describe ContactsController do
 
     it "redirects to contacts#index" do
       delete :destroy, id: @contact
+      expect(response).to redirect_to contacts_url
+    end
+  end
+
+  describe "PATCH hide_contact" do
+    before :each do
+      @contact = create(:contact)
+    end
+    
+    it "marks the contact as hidden" do
+      patch :hide, id: @contact
+      expect(@contact.reload.hidden?).to be_truthy
+    end
+
+    it "marks the contact as unhidden" do
+      @contact = create(:contact, hidden: true)
+      patch :hide, id: @contact
+      expect(@contact.reload.hidden?).to be_falsey
+    end
+
+    it "redirects to contacts#index" do
+      patch :hide, id: @contact
       expect(response).to redirect_to contacts_url
     end
   end

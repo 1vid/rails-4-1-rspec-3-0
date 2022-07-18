@@ -21,6 +21,11 @@
             <td style='text-align:right;'>
               <%= link_to 'Edit', edit_contact_path(contact), class: 'btn btn-default btn-xs' %>
               <%= link_to 'Destroy', contact, method: :delete, data: { confirm: 'Are you sure?' }, class: 'btn btn-xs btn-danger' %>
+              <% if contact.hidden? %>
+                <%= link_to 'Unhide', hide_contact_path(contact), method: :patch, class: 'btn btn-default btn-xs' %>
+              <% else %>
+                <%= link_to 'Hide', hide_contact_path(contact), method: :patch, class: 'btn btn-default btn-xs' %>
+              <% end %>
             </td>
           <% end %>
         </tr>

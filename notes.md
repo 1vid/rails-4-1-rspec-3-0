@@ -469,7 +469,7 @@ end
 
 ## Тестирование "не CRUD" методов
 
-Тестирование других методов контроллера не сильно отличается от тестирования стандартных(которые идут из коробки, "RESTful" ресурсы). Давайте проверим гипотетический пример с `hide_contact` методом из `ContactsController`'а, котрый позволит администартору удоно скрывать контакты не удаляя их из БД.(Оставлю вам возможность самостоятельно интегрировать эту фичу, если у вас есть желание).
+Тестирование других методов контроллера не сильно отличается от тестирования стандартных(которые идут из коробки, "RESTful" ресурсы). Давайте проверим гипотетический пример с `hide_contact` методом из `ContactsController`'а, котрый позволит администартору удоно скрывать контакты не удаляя их из БД.(Оставлю вам возможность самостоятельно интегрировать эту фичу, если у вас есть желание) У меня желание было и я реализовал эту фичу в этой ветке.
 
 Нам надо ее будет протестировать следующим образом:
 
@@ -479,14 +479,20 @@ describe "PATCH hide_contact" do
   before :each do
     @contact = create(:contact)
   end
-
+  
   it "marks the contact as hidden" do
-    patch :hide_contact, id: @contact
-    expect(@contact.reload.hidden?).to be_true
+    patch :hide, id: @contact
+    expect(@contact.reload.hidden?).to be_truthy
+  end
+
+  it "marks the contact as unhidden" do
+    @contact = create(:contact, hidden: true)
+    patch :hide, id: @contact
+    expect(@contact.reload.hidden?).to be_falsey
   end
 
   it "redirects to contacts#index" do
-    patch :hide_contact, id: @contact
+    patch :hide, id: @contact
     expect(response).to redirect_to contacts_url
   end
 end

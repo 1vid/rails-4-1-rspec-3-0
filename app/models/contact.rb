@@ -7,6 +7,8 @@ class Contact < ActiveRecord::Base
   validates :email, presence: true, uniqueness: true
   validates :phones, length: { is: 3 }
 
+  scope :not_hidden, -> { where(hidden: false) }
+
   def name
     [firstname, lastname].join(' ')
   end

@@ -1,14 +1,22 @@
 class ContactsController < ApplicationController
-#  before_action :authenticate, except: [:index, :show]
-  before_action :set_contact, only: [:show, :edit, :update, :destroy]
+  # before_action :authenticate, except: [:index, :show]
+  before_action :set_contact, only: [:show, :edit, :update, :destroy, :hide]
 
   # GET /contacts
   # GET /contacts.json
   def index
-    if params[:letter]
-      @contacts = Contact.by_letter(params[:letter])
+    if current_user
+      if params[:letter]
+        @contacts = Contact.by_letter(params[:letter])
+      else
+        @contacts = Contact.order('lastname, firstname')
+      end
     else
-      @contacts = Contact.order('lastname, firstname')
+      if params[:letter]
+        @contacts = Contact.by_letter(params[:letter]).not_hidden
+      else
+        @contacts = Contact.order('lastname, firstname').not_hidden
+      end
     end
   end
 
@@ -69,15 +77,20 @@ class ContactsController < ApplicationController
     end
   end
 
-  private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_contact
-      @contact = Contact.find(params[:id])
-    end
+  def hide
+    @contact.toggle!(:hidden)
+    redirect_to contacts_url
+  end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def contact_params
-      params.require(:contact).permit(:firstname, :lastname, :email,
-        :phones_attributes => [:id, :phone, :phone_type])
-    end
+private
+  # Use callbacks to share common setup or constraints between actions.
+  def set_contact
+    @contact = Contact.find(params[:id])
+  end
+
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def contact_params
+    params.require(:contact).permit(:firstname, :lastname, :email, :hidden,
+      :phones_attributes => [:id, :phone, :phone_type])
+  end
 end

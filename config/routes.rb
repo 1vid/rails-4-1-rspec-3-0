@@ -5,7 +5,11 @@ Rails.application.routes.draw do
   resources :users
   resources :sessions
 
-  resources :contacts
+  resources :contacts do
+    member do
+      patch 'hide'
+    end
+  end
 
   root 'contacts#index'
 end
